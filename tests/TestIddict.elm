@@ -1,11 +1,11 @@
-module TestIddict exposing (..)
+module TestIddict exposing (empty, fromList, insert, singleton)
 
 import Expect
 import Fuzz exposing (Fuzzer)
 import Iddict exposing (Iddict)
 import Json.Decode as D
 import Json.Encode as E
-import Test exposing (..)
+import Test exposing (Test, describe, fuzz, fuzz2, test)
 
 
 fuzzer : Fuzzer a -> Fuzzer (Iddict a)
@@ -17,13 +17,15 @@ fuzzer fuz =
             (\items ->
                 List.foldl
                     (\( rm, item ) dict ->
-                        case Iddict.insert item dict of
-                            ( key, d ) ->
-                                if rm then
-                                    Iddict.remove key d
+                        let
+                            ( key, d ) =
+                                Iddict.insert item dict
+                        in
+                        if rm then
+                            Iddict.remove key d
 
-                                else
-                                    d
+                        else
+                            d
                     )
                     Iddict.empty
                     items
@@ -201,11 +203,13 @@ insert =
             Fuzz.int
             "Add something"
             (\d i ->
-                case Iddict.insert i d of
-                    ( key, dict ) ->
-                        dict
-                            |> Iddict.get key
-                            |> Expect.equal (Just i)
+                let
+                    ( key, dict ) =
+                        Iddict.insert i d
+                in
+                dict
+                    |> Iddict.get key
+                    |> Expect.equal (Just i)
             )
         , fuzz2 (fuzzer Fuzz.int)
             Fuzz.int
@@ -220,57 +224,67 @@ insert =
             Fuzz.int
             "New key"
             (\d i ->
-                case Iddict.insert i d of
-                    ( key, dict ) ->
-                        dict
-                            |> Iddict.remove key
-                            |> Iddict.insert i
-                            |> (\( newKey, _ ) ->
-                                    Expect.notEqual key newKey
-                               )
+                let
+                    ( key, dict ) =
+                        Iddict.insert i d
+                in
+                dict
+                    |> Iddict.remove key
+                    |> Iddict.insert i
+                    |> (\( newKey, _ ) ->
+                            Expect.notEqual key newKey
+                       )
             )
         , fuzz2 (fuzzer Fuzz.int)
             Fuzz.int
             "New dict"
             (\d i ->
-                case Iddict.insert i d of
-                    ( key, dict ) ->
-                        dict
-                            |> Iddict.remove key
-                            |> Iddict.insert i
-                            |> (\( _, newDict ) ->
-                                    Expect.notEqual dict newDict
-                               )
+                let
+                    ( key, dict ) =
+                        Iddict.insert i d
+                in
+                dict
+                    |> Iddict.remove key
+                    |> Iddict.insert i
+                    |> (\( _, newDict ) ->
+                            Expect.notEqual dict newDict
+                       )
             )
         , fuzz2 (fuzzer Fuzz.int)
             Fuzz.int
             "Inserted value is member"
             (\d i ->
-                case Iddict.insert i d of
-                    ( key, dict ) ->
-                        dict
-                            |> Iddict.member key
-                            |> Expect.equal True
+                let
+                    ( key, dict ) =
+                        Iddict.insert i d
+                in
+                dict
+                    |> Iddict.member key
+                    |> Expect.equal True
             )
         , fuzz2 (fuzzer Fuzz.int)
             Fuzz.int
             "Get inserted value"
             (\d i ->
-                case Iddict.insert i d of
-                    ( key, dict ) ->
-                        dict
-                            |> Iddict.get key
-                            |> Expect.equal (Just i)
+                let
+                    ( key, dict ) =
+                        Iddict.insert i d
+                in
+                dict
+                    |> Iddict.get key
+                    |> Expect.equal (Just i)
             )
         , fuzz2 (fuzzer Fuzz.int)
             Fuzz.int
             "size = size + 1"
             (\d i ->
-                case Iddict.insert i d of
-                    ( _, dict ) ->
-                        Expect.equal
-                            (Iddict.size dict)
-                            (Iddict.size d + 1)
+                let
+                    ( _, dict ) =
+                        Iddict.insert i d
+                in
+                Expect.equal
+                    (Iddict.size dict)
+                    (Iddict.size d + 1)
             )
         ]
 

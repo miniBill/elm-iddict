@@ -89,7 +89,7 @@ decoder coder =
                 (List.filterMap
                     (\( key, val ) ->
                         String.toInt key
-                            |> Maybe.map (\k -> Tuple.pair k val)
+                            |> Maybe.map (\k -> ( k, val ))
                     )
                 )
             |> D.map Dict.fromList
@@ -258,11 +258,13 @@ did not.
 -}
 partition : (Int -> a -> Bool) -> Iddict a -> ( Iddict a, Iddict a )
 partition f (Iddict d) =
-    case Dict.partition f d.dict of
-        ( p1, p2 ) ->
-            ( Iddict { cursor = d.cursor, dict = p1 }
-            , Iddict { cursor = d.cursor, dict = p2 }
-            )
+    let
+        ( p1, p2 ) =
+            Dict.partition f d.dict
+    in
+    ( Iddict { cursor = d.cursor, dict = p1 }
+    , Iddict { cursor = d.cursor, dict = p2 }
+    )
 
 
 {-| Remove a key-value pair from the id-dict. If the key is not found, no

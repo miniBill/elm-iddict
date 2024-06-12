@@ -71,13 +71,10 @@ type Iddict a
 decoder : D.Decoder a -> D.Decoder (Iddict a)
 decoder coder =
     D.map2
-        (\c d ->
+        (\c ( maxKey, d ) ->
             Iddict
                 { cursor =
-                    Dict.keys d
-                        |> List.maximum
-                        |> Maybe.map ((+) 1)
-                        |> Maybe.withDefault 0
+                    maxKey
                         |> max (Dict.size d)
                         |> max c
                 , dict = d
@@ -86,13 +83,17 @@ decoder coder =
         (D.field "cursor" D.int)
         (D.keyValuePairs coder
             |> D.map
-                (List.filterMap
-                    (\( key, val ) ->
-                        String.toInt key
-                            |> Maybe.map (\k -> ( k, val ))
+                (List.foldl
+                    (\( key, val ) ( cursor, acc ) ->
+                        case String.toInt key of
+                            Just k ->
+                                ( max cursor (k + 1), Dict.insert k val acc )
+
+                            Nothing ->
+                                ( cursor, acc )
                     )
+                    ( 0, Dict.empty )
                 )
-            |> D.map Dict.fromList
             |> D.field "dict"
         )
 
